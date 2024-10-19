@@ -58,7 +58,7 @@ class boid:
     def unitizedVector(self, vector):
             unitCompX = vector[0]/(math.hypot(*vector))
             unitCompY = vector[1]/(math.hypot(*vector)) 
-            unitVector = (unitCompX, unitCompY)
+            unitVector = [unitCompX, unitCompY]
             return unitVector
     
 
@@ -89,15 +89,12 @@ class boid:
         self.canvas
 
 
-        #Make a tuple of the boid's current vector
+        #boid's current vector
         currentVector = [self.xVelocity, self.yVelocity]
         
-
-
         #ALL CHANGES RELYING ON OTHER BOIDS
         #run through all the other boids
         localVectors = []
-        localSpeeds = []
         localPositions = []
         tooClosePositions = []
         localColours = []
@@ -155,30 +152,19 @@ class boid:
             xDistance = otherXPos - self.xPos
             yDistance = otherYPos - self.yPos
             trueDistance = math.sqrt((xDistance * xDistance)+(yDistance * yDistance))
-            #COLLECT DIRECTIONS OF LOCAL FLOCK
             #COLLECT POSITIONS OF LOCAL FLOCK
-            #print("CHECKING LOCAL")
             if trueDistance <= self.vision and boidlet != self:
                 localVectors.append(otherVector)
-            #    print("FRIEND FOUND!")
+                #THIS gets colours for old => Avg colour in sight
                 localColours.append(boidlet.colour)
-                #Little check to see if they're all going @ the proper speed
-                #localSpeeds.append(math.sqrt((otherVector[0]*otherVector[0])+(otherVector[1]*otherVector[1])))
                 if trueDistance > self.dispersal:
                     localPositions.append(otherCoords)
-                #USE THIS TO HAVE THE BOIDS GET COLOUR OF WHAT THEY SEE
-                #localColours.append(boidlet.colour)
                 #COLLECT POSITIONS OF THOSE TOO CLOSE
-                if trueDistance <= self.dispersal:
+                elif trueDistance <= self.dispersal:
                     tooClosePositions.append(otherCoords)
 
-
-
         finalPressures = []
-        #desiredVector = ()
-
         self.canvas.itemconfig(self.image,fill=self.originalColour)
-
 
         #CALC AVG DIRECTION OF LOCAL FLOCK + add to averagedPressures list
         if len(localVectors) > 0:
@@ -213,44 +199,27 @@ class boid:
 
 
         #SET NEW VECTOR
-        #go thru averagedPressures to set final desiredVector
-        #find average between desiredVector & currentVector, then set currentVector to that
-        #1, Calc desired vector
         if len(finalPressures) > 0:
             #print(finalPressures)
             #i, average pressures are averaged out into the desired vector
             desiredVector = self.averageVector(finalPressures)
 
-            #ii, desired vector is turned into a unit vector
-            unitDesiredVector = self.unitizedVector(desiredVector)
-            #✔✔ unitDesiredVector works correctly
-
-            #iii, current vector is turned into a unit vector
-            unitCurrentVector = self.unitizedVector(currentVector)
-            #✔✔ unitCurrentVector works correctly
-
             #2, Average of Desired & Current is found & newVector is set to that
-            newXComp = (unitDesiredVector[0] + unitCurrentVector[0])/2
-            newYComp = (unitDesiredVector[1] + unitCurrentVector[1])/2
-            newVector = (newXComp, newYComp)
+            newXComp = (desiredVector[0] + currentVector[0])/2
+            newYComp = (desiredVector[1] + currentVector[1])/2
+            newVector = [newXComp, newYComp]
 
-            #i, New Vector is set to a unit vector
-            unitNewVector = self.unitizedVector(newVector)
-            #✔✔ unitNewVector works correctly
-
-            #Remember to multiply it back so that they move @ th right speed
-            speededNewVector = (unitNewVector[0]*self.speed, unitNewVector[1]*self.speed)
-
-            #By making a unit vector, we set the ratio of x:y to move the correct amount to go z distance
-            #Then unitVector*speed scales those movements so that they move @ the boids proper speed
         else:
-            speededNewVector = (currentVector[0],currentVector[1])
-            #print (math.sqrt((speededNewVector[0]**2)+(speededNewVector[1]**2)))
+            newVector = [currentVector[0],currentVector[1]]
 
-        #Current Vector set to the new vector, scaled to the speed limit
-        currentVector = speededNewVector
-        #currentSpeed = math.hypot(*currentVector)
-        #print(currentSpeed)
+        #Current Vector set to the new vector
+        currentVector = [newVector[0], newVector[1]]
+        #Check speed & limit @ self.speed
+        if math.sqrt(currentVector[0]**2 + currentVector[1]**2) > self.speed:
+            #unit the vector, then mult by speed
+            currentVector = self.unitizedVector(currentVector)
+            currentVector[0] = currentVector[0] * self.speed
+            currentVector[1] = currentVector[1] * self.speed
 
 
         #I dont know why, but TK moves the boid circles by +1,+1 (ie if xVel = 0, it will still move +1)
@@ -258,26 +227,26 @@ class boid:
         xMove = currentVector[0] - 1
         yMove = currentVector[1] - 1
         
-
         #This moves the boid, "by adding x amount to the x axis & y amount...", THIS is why xVelocity & yVel... are needed 
-        ## FROM THE DOCUMENTATION vv
-        ##pathName move tagOrId xAmount yAmount
-        ##Move each of the items given by tagOrId in the canvas coordinate space by adding xAmount to the x-coordinate of each point associated with the item and yAmount to the y-coordinate of each point associated with the item. This command returns an empty string.
         self.canvas.move(self.image, xMove, yMove)
 
         #Sets the x & y Pos based off of boids new position, otherwise they just jiggle around one spot
-        ##This is because the next time it moves it checks its position (which was never reset), sp moves from there again
-        ##The new info is taken from self.image, taking the first two itelf from the list as defined in ___init___ > image = canvas.create_oval(xPos,yPos,xPos+8,yPos+8,fill=colour) 
-        ##The : 'slice' defines the start and end points to look at, here start at 0, then end at the last entry before 2, ie, self.image[0,1], which are xPos & yPos respectively
         self.xPos, self.yPos = self.canvas.coords(self.image)[0:2]
 
-        ##CHANGE COLOUR TO DOMINANT COLOUR OF BOIDS IN SIGHT
-        if len(localColours) > 0:
-            #local colours counted up and ordered according to occurance
-            colourCounter = Counter(localColours)
-            #dominant colour set to the most common colour, done by organising the list of counted colours
-            dominantColour = colourCounter.most_common()[0][0]
-            self.colour = dominantColour
-            #Change the colour of a drawn item after drawing
-            self.canvas.itemconfig(self.image,fill=self.colour)
+        ##CHANGE COLOUR BASED ON BOID SPEED
+        #ROYGBP
+        currentSpeed = math.sqrt(currentVector[0]**2 + currentVector[1]**2)
+        if currentSpeed > (self.speed / 5)*4:
+            self.colour = "red"
+        elif currentSpeed > (self.speed / 5)*3:
+            self.colour = "yellow"
+        elif currentSpeed > (self.speed / 5)*2:
+            self.colour = "green"
+        elif currentSpeed > (self.speed / 5):
+            self.colour = "blue"
+        else:
+            self.colour = "purple"
+        #Change the colour of a drawn item after drawing
+        self.canvas.itemconfig(self.image,fill=self.colour)
+
 
