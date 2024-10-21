@@ -25,16 +25,16 @@ colours = ["white", "red", "orange", "yellow", "green", "blue", "purple", "pink"
 def gen_colour(): return random.choice(colours)
 size = 8
 speed = 4
-vision = size * 4
-dispersal = size * 1.5
+#vision = size * 4
+#dispersal = size * 1.5
 
 #Create all the boids & fill empty boids list w/ them
 #All the functions set up earlier are called to generate the necessary information for the boid
 ##as seen in 'def __init__(self,canvas,xPos,yPos,xVelocity,yVelocity,color, cHeight, cWidth)'
-for x in range(300):
+for x in range(400):
     ##Old boid has x&yVelocities set for it & fixed
     #x = boid(canvas,gen_xPos(), gen_yPos(), gen_xVel(), gen_yVel(), gen_direction(), gen_colour(), HEIGHT, WIDTH)
-    x = boid(canvas,gen_xPos(), gen_yPos(), size, speed, vision, dispersal, gen_colour(), HEIGHT, WIDTH)
+    x = boid(canvas,gen_xPos(), gen_yPos(), size, speed, gen_colour(), HEIGHT, WIDTH)
     boids.append(x)
 
 #for boidlet in boids:
