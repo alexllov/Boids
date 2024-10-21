@@ -63,6 +63,9 @@ class boid:
         self.cWidth = cWidth
         self.flock = []
 
+    def setCanvasSize(self, canvasDimensions):
+        self.cWidth = canvasDimensions[0]
+        self.cHeight = canvasDimensions[1]
 
     def _averageVector(self, vectorList):
         """
