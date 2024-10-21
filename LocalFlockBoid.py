@@ -4,13 +4,29 @@ import random
 from operator import attrgetter
 from operator import itemgetter
 
-#create the class boids
 class boid:
-    #this is the initial setup of the boid, __init__ gives all the initial data needed to create one
-    #self.x = x attributes the x property of the boid to the data entered in that category on generation
-    #self.image = canvas.create_oval <- draws the ovals that are each individual boid
-    #def __init__(self, canvas, xPos, yPos, xVelocity, yVelocity, direction, colour, cHeight, cWidth):
-    def __init__(self, canvas, xPos, yPos, size, speed, vision, dispersal, colour, cHeight, cWidth):
+    def __init__(self, canvas, xPos, yPos, size, speed, colour, cHeight, cWidth):
+        """
+        Constructor for boid class
+
+        Required Variables: 
+        canvas: corresponding tkinter canvas 
+        xPos: x position on canvas
+        yPos: y position on canvas
+        size: INT size of boid
+        colour,
+        cHeight: height of canvas 
+        cWidth: width of canvas
+
+        Derived Variables:
+        vision: range around itself in which the boid can 'see' other boids
+        dispersal: defines the point where other boids are too close & should be moved away from
+        xVelocity
+        yVelocity
+        xMagnitude
+        yMagnitude
+        flock
+        """
         self.canvas = canvas
         self.xPos = xPos
         self.yPos = yPos
@@ -19,11 +35,10 @@ class boid:
         self.size = size
         self.image = canvas.create_oval(xPos,yPos,xPos+size,yPos+size, fill=colour)
         self.speed = speed
-
         #X & Y Velocities randomly generated based on speed given
         #xVel set to random value between + & - speed
         self.xVelocity = random.uniform(-speed,speed)
-        #Velocity squared & square rooted to remove the sign (+ or -), giving the pure magnitude
+        #Velocity squared & square rooted to find the magnitude
         self.xMagnitude = math.sqrt(self.xVelocity*self.xVelocity)
         #Final side of triangle found using c2 - a2 = b2 (rearranged a2 + b2 = c2)
         self.yMagnitude = math.sqrt((speed * speed) - (self.xMagnitude * self.xMagnitude))
@@ -35,16 +50,19 @@ class boid:
         else:
             self.yVelocity = self.yMagnitude
         
-        self.vision = vision
-        self.dispersal = dispersal
+        self.vision = size * 4
+        self.dispersal = size * 1.5
         self.cHeight = cHeight
         self.cWidth = cWidth
         self.flock = []
 
-    #def average(self, lst): return sum(lst)/len(lst)
 
     def averageVector(self, vectorList):
-        #Take in Vector List, split it up into a list of X & Ys, find avg of each, return those two combined
+        """
+        Takes list of vectors, returns average vector from them.
+        
+        Variables: VectorList
+        """
         averageXComp = 0
         averageYComp = 0
         for vector in vectorList:
@@ -56,6 +74,11 @@ class boid:
         return avgVector
     
     def unitizedVector(self, vector):
+            """
+            Takes a vector, returns the corresponding unit vector
+
+            Variables: vector
+            """
             unitCompX = vector[0]/(math.hypot(*vector))
             unitCompY = vector[1]/(math.hypot(*vector)) 
             unitVector = [unitCompX, unitCompY]
@@ -63,13 +86,13 @@ class boid:
     
 
     def fly(self, snapshot):
-        def average(lst): return sum(lst)/len(lst)
+        """
+        Takes the boid and a deep copy of the canvas, returns the new position of the boid
+        """
         #Coordinates of the boid are set to its current coordinates on the canvas
         self.coordinates = self.canvas.coords(self.image)
 
-        #✔✔✔✔✔✔✔✔✔✔✔✔✔✔✔✔
-        #WRAP OFF EDGES
-        #Boid's position is checked, if it is at any edge of the canvas, it is wrapped to the opposite edge
+        #Wrap Over Canvas Edges
         if self.coordinates[0] >= self.cWidth:
             self.xPos = 0
         if self.coordinates[0] < 0:
@@ -79,7 +102,6 @@ class boid:
         if self.coordinates[1] < 0:
             self.yPos = self.cHeight
 
-        #✔✔✔✔✔✔✔✔✔✔✔✔✔✔✔✔
         #This moves the boid to its x & y pos after changed during wrap (otherwise it disappears once it goes off the edge)
         ##FROM THE DOCUMENTATION vv - This is distinct from 'move', which alters the x & y val by a given amont,
         ##instead, #moveto' picks it up & sets it t the new co-ordinates given
@@ -87,11 +109,8 @@ class boid:
         ##Move the items given by tagOrId in the canvas coordinate space so that the first coordinate pair (the upper-left corner of the bounding box) of the first item (the lowest in the display list) with tag tagOrId is located at position (xPos,yPos). xPos and yPos may be the empty string, in which case the corresponding coordinate will be unchanged. All items matching tagOrId remain in the same positions relative to each other. This command returns an empty string.
         self.canvas.moveto(self.image, self.xPos, self.yPos)
         self.canvas
-
-
         #boid's current vector
         currentVector = [self.xVelocity, self.yVelocity]
-        
         #ALL CHANGES RELYING ON OTHER BOIDS
         #run through all the other boids
         localVectors = []
@@ -99,50 +118,18 @@ class boid:
         tooClosePositions = []
         localColours = []
 
-
-############################################################################################
-############################################################################################
-############################################################################################
-
-#The idea of this section is to create a smaller list for each boid to make comparisons to in order to save time,
-#However, looking at it, surely its still each boid comparing all the others to itself? only now in 2 steps so even worse?
-#Unless I can somehow sort by hypot & then axe those outside of view? - BUT THAT IS COMPARING THE BOID TO ALL OTHERS!!!!
-#I believe this approach is fundamentally flawed
-
-#        #Slicing down the whole flock to the local group
-#        #flock sorted by x coordinate
-#        xSortedSnapshot = sorted(snapshot, key=lambda boidlet: boidlet.xPos)
-#        #new array of boids made from all with x coordainate in range of vision from boid's x position
-#        xSlice = xSortedSnapshot[int(self.xPos-self.vision):int(self.xPos+self.vision)]
-#        print (len(xSortedSnapshot), len(xSlice))
-#        ySortedxSlice = sorted(xSlice, key=lambda boidlet: boidlet.yPos)
-#        xySlice = ySortedxSlice[int(self.xPos-self.vision):int(self.xPos+self.vision)]
-#        #if len(ySortedxSlice) > 0:
-#        #    print("Boidlet is at", self.xPos, self.yPos, "array info:", ySortedxSlice[0].xPos,ySortedxSlice[0].yPos)
-
-
-
-        xSortedSnapshot = sorted(snapshot, key=lambda boidlet: boidlet.xPos) #key=attrgetter('xPos'))
-        #xSlice = xSortedSnapshot[int(self.xPos-self.vision):int(self.xPos+self.vision)]
-        #print (len(xSortedSnapshot), len(xSlice))
-        #ySortedxSlice = sorted(xSlice, key=lambda boidlet: boidlet.yPos)
-        #xySlice = ySortedxSlice[int(self.xPos-self.vision):int(self.xPos+self.vision)]
-        sadXSlice = []
+        xSortedSnapshot = sorted(snapshot, key=lambda boidlet: boidlet.xPos)
+        xSlice = []
         for boidlet in xSortedSnapshot:
             if self.xPos - self.vision < boidlet.xPos and self.xPos + self.vision > boidlet.xPos:
-                sadXSlice.append(boidlet) 
-        sadXYSlice = []
-        for boidlet in sadXSlice:
+                xSlice.append(boidlet) 
+        xySlice = []
+        for boidlet in xSlice:
             if self.yPos - self.vision < boidlet.yPos and self.yPos + self.vision > boidlet.yPos:
-                sadXYSlice.append(boidlet)
-
-############################################################################################
-############################################################################################
-############################################################################################
-
+                xySlice.append(boidlet)
 
         #CHECK ALL THE OTHER BOIDS & GATHER RELEVANT INFO
-        for boidlet in sadXYSlice:
+        for boidlet in xySlice:
             #set some variables from the other boid to compare from
             otherXPos = boidlet.xPos
             otherYPos = boidlet.yPos
@@ -155,7 +142,7 @@ class boid:
             #COLLECT POSITIONS OF LOCAL FLOCK
             if trueDistance <= self.vision and boidlet != self:
                 localVectors.append(otherVector)
-                #THIS gets colours for old => Avg colour in sight
+                #THIS gets colours for old => Avg colour in sight (currently not used)
                 localColours.append(boidlet.colour)
                 if trueDistance > self.dispersal:
                     localPositions.append(otherCoords)
@@ -185,10 +172,8 @@ class boid:
             vectorToLocalCentre = (vectorXComp, vectorYComp)
             finalPressures.append(vectorToLocalCentre)
 
-
         #CALC THE VELOCITY AWAY FROM THOSE TOO CLOSE & FIND AVG
         if len(tooClosePositions) > 0:
-            vectorsAway = []
             for tooClose in tooClosePositions:
                 #The vectors away from each boid too close is calculated
                 vectorXComp = self.xPos - tooClose[0]
@@ -196,7 +181,6 @@ class boid:
                 vectorAwayFromTooClose = (vectorXComp, vectorYComp)
                 #These are each appended to pressures, so that moving away from each boids matters
                 finalPressures.append(vectorAwayFromTooClose)
-
 
         #SET NEW VECTOR
         if len(finalPressures) > 0:
@@ -208,7 +192,6 @@ class boid:
             newXComp = (desiredVector[0] + currentVector[0])/2
             newYComp = (desiredVector[1] + currentVector[1])/2
             newVector = [newXComp, newYComp]
-
         else:
             newVector = [currentVector[0],currentVector[1]]
 
@@ -220,7 +203,6 @@ class boid:
             currentVector = self.unitizedVector(currentVector)
             currentVector[0] = currentVector[0] * self.speed
             currentVector[1] = currentVector[1] * self.speed
-
 
         #I dont know why, but TK moves the boid circles by +1,+1 (ie if xVel = 0, it will still move +1)
         #This throws off all the velocities, so these counter that
@@ -234,7 +216,6 @@ class boid:
         self.xPos, self.yPos = self.canvas.coords(self.image)[0:2]
 
         ##CHANGE COLOUR BASED ON BOID SPEED
-        #ROYGBP
         currentSpeed = math.sqrt(currentVector[0]**2 + currentVector[1]**2)
         if currentSpeed > (self.speed / 5)*4:
             self.colour = "red"
