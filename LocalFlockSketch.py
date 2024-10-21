@@ -1,7 +1,5 @@
 from tkinter import *
-from tkinter import messagebox
 from LocalFlockBoid import *
-import time
 import random
 
 #Determine size of window
@@ -12,7 +10,17 @@ WIDTH = 700
 window = Tk()
 canvas = Canvas(window, bg="black", width=WIDTH,height=HEIGHT)
 window.resizable(height = True, width = True)
-canvas.pack()
+canvas.pack(fill="both", expand=True)
+
+
+def on_resize(event): 
+    newDimensions = (event.width, event.height)
+    for boidlet in boids:
+        boidlet.setCanvasSize(newDimensions)
+
+# Bind the resize event to the on_resize function 
+canvas.bind("<Configure>", on_resize) 
+
 
 #Create empty list of boids
 boids = []
