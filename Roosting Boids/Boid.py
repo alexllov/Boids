@@ -1,5 +1,6 @@
-import math
+from math import sqrt, hypot
 import random
+
 
 class Boid:
     """
@@ -59,9 +60,9 @@ class Boid:
         # X & Y Velocities randomly generated based on speed given
         self.xVelocity = random.uniform(-speed,speed)
         # Velocity squared & square rooted to find the magnitude
-        self.xMagnitude = math.sqrt(self.xVelocity*self.xVelocity)
+        self.xMagnitude = sqrt(self.xVelocity*self.xVelocity)
         # Final side of triangle found using c2 - a2 = b2
-        self.yMagnitude = math.sqrt((speed * speed)
+        self.yMagnitude = sqrt((speed * speed)
                                     - (self.xMagnitude * self.xMagnitude))
         # yVelocity set to + or - randomly
         flip = random.randint(0,1)
@@ -87,8 +88,8 @@ class Boid:
         Keyword Arguments: 
         vector
         """
-        unitCompX = vector[0]/(math.hypot(*vector))
-        unitCompY = vector[1]/(math.hypot(*vector)) 
+        unitCompX = vector[0]/(hypot(*vector))
+        unitCompY = vector[1]/(hypot(*vector)) 
         unitVector = [unitCompX, unitCompY]
         return unitVector
 
@@ -158,7 +159,7 @@ class Boid:
         Sets upper and lower bounds for boid speed to ensure they continue
         moving, but don't exceed a preset limit. Scales the current vectors.
         """
-        trueVel = math.sqrt(self.xVelocity**2 + self.yVelocity**2)
+        trueVel = sqrt(self.xVelocity**2 + self.yVelocity**2)
         currentVector = [self.xVelocity, self.yVelocity]
         # Upper Bound
         if trueVel > self.speed:

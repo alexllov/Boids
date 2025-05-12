@@ -2,7 +2,6 @@ from tkinter import *
 from GlobalRoostBoid import GlobalRoostBoid
 from RoostNode import Roost
 from GlobalFlock import GlobalFlock
-
 import random
 
 #Determine size of window
@@ -17,7 +16,7 @@ canvas.pack(fill="both", expand=True)
 
 def on_resize(event): 
     newDimensions = (event.width, event.height)
-    for boidlet in boids:
+    for boidlet in flock:
         boidlet.setCanvasSize(newDimensions)
 
 # Bind the resize event to the on_resize function 
