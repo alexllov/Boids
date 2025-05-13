@@ -1,6 +1,5 @@
 from tkinter import *
-from Boid import Boid
-import random
+from Flock import Flock
 
 # Determine size of window
 HEIGHT = 500
@@ -10,7 +9,7 @@ WIDTH = 700
 window = Tk()
 window.title("Boids")
 window.geometry(f"{WIDTH}x{HEIGHT}")
-window.resizable(height = True, width = True)
+window.resizable(height=True, width=True)
 
 outerFrame = Frame(window)
 outerFrame.pack(fill="both", expand=True)
@@ -23,56 +22,43 @@ controlPanel.pack(side="bottom", fill="x")
 
 def on_resize(event): 
     newDimensions = (event.width, event.height)
-    for boidlet in boids:
+    for boidlet in flock.boids:
         boidlet.setCanvasSize(newDimensions)
 
 # Bind the resize event to the on_resize function 
 canvas.bind("<Configure>", on_resize) 
 
-# Functions to determine the details for each boid
-def gen_xPos(): return random.uniform(0,WIDTH)
-def gen_yPos(): return random.uniform(0,HEIGHT)
-colours = ["red", "orange", "yellow", "green", "blue", "purple"]
-def gen_colour(): return random.choice(colours)
-size = 8
-speed = 4
+# Create flock of boids
+flock = Flock(canvas, WIDTH, HEIGHT, num=200)
 
-#Create all the boids
-boids = []
-for x in range(200):
-    x = Boid(canvas, gen_xPos(), gen_yPos(), size,
-             speed, gen_colour(), HEIGHT, WIDTH)
-    boids.append(x)
-
-# Collect Pressure Defaults
-alignment = boids[0].alignmentFactor
-separation = boids[0].separationFactor
-cohesion = boids[0].cohesionFactor
-
+# Collect Defaults for sliders
+speed = flock[0].speed
+alignment = flock[0].alignmentFactor
+separation = flock[0].separationFactor
+cohesion = flock[0].cohesionFactor
 
 def flockFly():
-    for boidlet in boids:
-        boidlet.fly(boids)
+    flock.fly()
     canvas.after(1, flockFly)
 
 def changeSpeed(val):
     speed = float(val)
-    for boidlet in boids:
+    for boidlet in flock:
         boidlet.speed = speed
 
 def changeAlignment(val):
     alignment = float(val)
-    for boidlet in boids:
+    for boidlet in flock:
         boidlet.alignmentFactor = alignment
 
 def changeSeparation(val):
     separation = float(val)
-    for boidlet in boids:
+    for boidlet in flock:
         boidlet.separationFactor = separation
 
 def changeCohesion(val):
     cohesion = float(val)
-    for boidlet in boids:
+    for boidlet in flock:
         boidlet.cohesionFactor = cohesion
 
 speedFrame = Frame(controlPanel, bg="white")
