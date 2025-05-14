@@ -49,7 +49,7 @@ window.resizable(height=True, width=True)
 outerFrame = Frame(window)
 outerFrame.pack(fill="both", expand=True)
 
-canvas = Canvas(outerFrame, bg="black", width=WIDTH,height=HEIGHT*0.8)
+canvas = Canvas(outerFrame, bg="black", width=WIDTH, height=HEIGHT*0.8)
 canvas.pack(side="top", fill="both", expand=True)
 
 controlPanel = Frame(outerFrame, bg="white", width=WIDTH, height=HEIGHT*0.2)
@@ -59,7 +59,7 @@ controlPanel.pack(side="bottom", fill="x")
 canvas.bind("<Configure>", onResize)
 
 # Create flock of boids
-flock = Flock(canvas, WIDTH, HEIGHT, num=200)
+flock = Flock(canvas, HEIGHT, WIDTH, num=200)
 
 speed = flock[0].speed
 speedSlider = createSlider(controlPanel, "Speed", "speed", 1, 10, speed)

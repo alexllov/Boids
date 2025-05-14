@@ -15,8 +15,7 @@ class Boid:
         """
         Constructor for boid class.
 
-        Keyword Arguments:
-        Required:
+        Required Args:
         canvas: corresponding tkinter canvas 
         xPos: x position on canvas
         yPos: y position on canvas
@@ -59,11 +58,10 @@ class Boid:
 
         # X & Y Velocities randomly generated based on speed given
         self.xVelocity = random.uniform(-speed,speed)
-        # Velocity squared & square rooted to find the magnitude
         self.xMagnitude = sqrt(self.xVelocity*self.xVelocity)
         # Final side of triangle found using c2 - a2 = b2
         self.yMagnitude = sqrt((speed * speed)
-                                    - (self.xMagnitude * self.xMagnitude))
+                                - (self.xMagnitude * self.xMagnitude))
         # yVelocity set to + or - randomly
         flip = random.randint(0,1)
         if flip == 0:
@@ -73,10 +71,10 @@ class Boid:
 
     def setCanvasSize(self, canvasDimensions):
         """
-        Setter function applied when canvas size is changed
+        Setter function applied when canvas size is changed.
 
-        Keyword Arguments:
-        canvasDimensions
+        Args:
+        canvasDimensions: array
         """
         self.cWidth = canvasDimensions[0]
         self.cHeight = canvasDimensions[1]
@@ -85,7 +83,7 @@ class Boid:
         """
         Takes a vector, returns the corresponding unit vector.
 
-        Keyword Arguments: 
+        Args: 
         vector
         """
         unitCompX = vector[0]/(hypot(*vector))
@@ -97,7 +95,7 @@ class Boid:
         """Adjusts boid's velocity to steer away from the edge of the env."""
         margin = 10
         steerPressure = 1
-        # Wrap Over Canvas Edges
+        
         if self.xPos >= self.cWidth-margin:
             self.xVelocity -= steerPressure
         elif self.xPos <= margin:
@@ -113,7 +111,8 @@ class Boid:
         and separation velocities based on the others, and updates velocities
         accordingly.
 
-        Takes: flock
+        Args:
+        flock: array of boids
         """
         localFlock, tooClose = [], []
         xVel, yVel, xPos, yPos, closeDx, closeDy = 0, 0, 0, 0, 0, 0
@@ -181,8 +180,8 @@ class Boid:
         Takes the boid and a deep copy of the canvas, 
         moves the boid based on the update rules and pressures.
 
-        Keyword Arguments:
-        boids: list of all boids
+        Args:
+        boids: array of boids
         """
         # Coordinates of the boid are set to its current coords on the canvas
         self.coordinates = self.canvas.coords(self.image)
